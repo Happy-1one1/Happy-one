@@ -1244,6 +1244,51 @@
       filter: drop-shadow(0 10px 18px rgba(60, 36, 36, 0.14));
     }
 
+  
+    /* v19：小猫点击反馈 */
+    .cat-face.cat-tapped {
+      animation: catTapPop 0.34s ease both !important;
+    }
+
+    @keyframes catTapPop {
+      0% { transform: scale(1) rotate(0deg); }
+      35% { transform: scale(1.18) rotate(-5deg); }
+      70% { transform: scale(1.08) rotate(4deg); }
+      100% { transform: scale(1) rotate(0deg); }
+    }
+
+    .cat-tap-bubble {
+      position: absolute;
+      right: -10px;
+      top: -10px;
+      min-width: 30px;
+      height: 30px;
+      padding: 0 8px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #ff7aa8, #ffb65f);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 18px rgba(255, 120, 160, 0.28);
+      border: 2px solid rgba(255,255,255,0.88);
+      opacity: 0;
+      transform: scale(0.7);
+      pointer-events: none;
+      transition: all 0.18s ease;
+    }
+
+    .cat-tap-bubble.show {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .cat-egg-pop {
+      touch-action: manipulation;
+    }
+
   </style>
 </head>
 
@@ -1253,6 +1298,7 @@
     <div class="auth-card" id="authCard">
       <div class="cat-face" id="catFace" aria-hidden="true">
         <img class="cat-face-img" src="data:image/webp;base64,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" alt="小猫头像">
+        <span class="cat-tap-bubble" id="catTapBubble">0/5</span>
       </div>
 
       <h1 class="auth-title">今天也要开心呀</h1>
@@ -1586,8 +1632,9 @@
     let authWrongCount = 0;
     let authCatTapCount = 0;
     let authCatTapWindowStart = 0;
-    let catEggShownThisRound = false;
     let authCatTapLastTs = 0;
+    let catEggShownThisRound = false;
+
     const AUTH_STORAGE_KEY = "swh_happy_page_auth_ok_v1";
     const authHints = [
       "输入手机尾号开启今天的开心一天。",
@@ -1639,90 +1686,12 @@
       if (overlay) {
         overlay.style.opacity = "0";
         overlay.style.pointerEvents = "none";
-        setTimeout(() => {
+        setTimeout(function () {
           overlay.classList.add("hidden");
         }, 420);
       }
 
       tryPlayMusic();
-    }
-
-
-    function bindAuthButtonForMobile() {
-      const btn = document.getElementById("authBtn");
-      if (!btn || btn.dataset.bound === "yes") return;
-
-      btn.dataset.bound = "yes";
-
-      const run = function (event) {
-        if (event) {
-          event.preventDefault();
-          event.stopPropagation();
-        }
-        checkAuthPassword();
-      };
-
-      if (window.PointerEvent) {
-        btn.addEventListener("pointerdown", run, { passive: false });
-      } else {
-        btn.addEventListener("touchstart", run, { passive: false });
-      }
-    }
-
-    function resetAuthStateToPasswordPage() {
-      try {
-        localStorage.removeItem(AUTH_STORAGE_KEY);
-      } catch (e) {}
-
-      authWrongCount = 0;
-      authCatTapCount = 0;
-      authCatTapWindowStart = 0;
-      authCatTapLastTs = 0;
-      catEggShownThisRound = false;
-
-      const overlay = document.getElementById("authOverlay");
-      const input = document.getElementById("authInput");
-      const hint = document.getElementById("authHint");
-      const pop = document.getElementById("catEggPop");
-      const audio = document.getElementById("bgMusic");
-      const btn = document.getElementById("musicBtn");
-      const tip = document.getElementById("musicTip");
-
-      if (audio) {
-        audio.pause();
-        audio.currentTime = 0;
-      }
-
-      if (btn) {
-        btn.classList.remove("playing");
-        btn.classList.add("hidden");
-      }
-
-      if (tip) {
-        tip.classList.add("hidden");
-      }
-
-      if (pop) {
-        pop.classList.add("hidden");
-      }
-
-      if (input) {
-        input.value = "";
-      }
-
-      if (hint) {
-        hint.innerText = "喵～祝你今天有甜甜的好心情。";
-      }
-
-      if (overlay) {
-        overlay.classList.remove("hidden");
-        overlay.style.opacity = "1";
-        overlay.style.pointerEvents = "auto";
-      }
-
-      setTimeout(() => {
-        if (input) input.focus();
-      }, 220);
     }
 
     function checkAuthPassword() {
@@ -1757,9 +1726,39 @@
       }
 
       input.value = "";
-      input.focus();
+      setTimeout(function () {
+        input.focus();
+      }, 80);
     }
 
+    function bindAuthButtonForMobile() {
+      const btn = document.getElementById("authBtn");
+      if (!btn || btn.dataset.bound === "yes") return;
+
+      btn.dataset.bound = "yes";
+
+      const run = function (event) {
+        if (event) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+        checkAuthPassword();
+      };
+
+      if (window.PointerEvent) {
+        btn.addEventListener("pointerdown", run, { passive: false });
+      } else {
+        btn.addEventListener("touchstart", run, { passive: false });
+      }
+
+      btn.addEventListener("click", function (event) {
+        if (event) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+        checkAuthPassword();
+      }, { passive: false });
+    }
 
     function bindAuthCatTap() {
       const cat = document.getElementById("catFace");
@@ -1779,28 +1778,63 @@
         cat.addEventListener("pointerdown", run, { passive: false });
       } else {
         cat.addEventListener("touchstart", run, { passive: false });
-        cat.addEventListener("click", run);
+      }
+
+      cat.addEventListener("click", function (event) {
+        if (event) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+        tapAuthCat();
+      }, { passive: false });
+    }
+
+    function showCatTapFeedback() {
+      const cat = document.getElementById("catFace");
+      const bubble = document.getElementById("catTapBubble");
+
+      if (cat) {
+        cat.classList.remove("cat-tapped");
+        void cat.offsetWidth;
+        cat.classList.add("cat-tapped");
+      }
+
+      if (bubble) {
+        bubble.innerText = authCatTapCount + "/5";
+        bubble.classList.add("show");
+
+        setTimeout(function () {
+          if (authCatTapCount === 0 || catEggShownThisRound) {
+            bubble.classList.remove("show");
+          }
+        }, 900);
       }
     }
 
     function tapAuthCat() {
       if (catEggShownThisRound) {
+        const hintDone = document.getElementById("authHint");
+        if (hintDone) {
+          hintDone.innerText = "开心通行证这轮已经领取啦，重置后可以再次领取。";
+        }
         return;
       }
 
       const now = Date.now();
 
-      if (authCatTapLastTs && now - authCatTapLastTs < 180) {
+      if (authCatTapLastTs && now - authCatTapLastTs < 120) {
         return;
       }
       authCatTapLastTs = now;
 
-      if (!authCatTapWindowStart || now - authCatTapWindowStart > 3200) {
+      if (!authCatTapWindowStart || now - authCatTapWindowStart > 4200) {
         authCatTapWindowStart = now;
         authCatTapCount = 1;
       } else {
         authCatTapCount += 1;
       }
+
+      showCatTapFeedback();
 
       const hint = document.getElementById("authHint");
       if (hint && authCatTapCount < 5) {
@@ -1817,6 +1851,13 @@
 
     function showCatEgg() {
       const pop = document.getElementById("catEggPop");
+      const bubble = document.getElementById("catTapBubble");
+
+      if (bubble) {
+        bubble.innerText = "5/5";
+        bubble.classList.add("show");
+      }
+
       if (pop) {
         pop.classList.remove("hidden");
       }
@@ -1825,9 +1866,14 @@
     function closeCatEgg() {
       const pop = document.getElementById("catEggPop");
       const hint = document.getElementById("authHint");
+      const bubble = document.getElementById("catTapBubble");
 
       if (pop) {
         pop.classList.add("hidden");
+      }
+
+      if (bubble) {
+        bubble.classList.remove("show");
       }
 
       if (hint) {
@@ -1835,10 +1881,66 @@
       }
     }
 
+    function resetAuthStateToPasswordPage() {
+      try {
+        localStorage.removeItem(AUTH_STORAGE_KEY);
+      } catch (e) {}
+
+      authWrongCount = 0;
+      authCatTapCount = 0;
+      authCatTapWindowStart = 0;
+      authCatTapLastTs = 0;
+      catEggShownThisRound = false;
+
+      const overlay = document.getElementById("authOverlay");
+      const input = document.getElementById("authInput");
+      const hint = document.getElementById("authHint");
+      const pop = document.getElementById("catEggPop");
+      const bubble = document.getElementById("catTapBubble");
+      const audio = document.getElementById("bgMusic");
+      const btn = document.getElementById("musicBtn");
+      const tip = document.getElementById("musicTip");
+
+      if (audio) {
+        audio.pause();
+        audio.currentTime = 0;
+      }
+
+      if (btn) {
+        btn.classList.remove("playing");
+        btn.classList.add("hidden");
+      }
+
+      if (tip) {
+        tip.classList.add("hidden");
+      }
+
+      if (pop) {
+        pop.classList.add("hidden");
+      }
+
+      if (bubble) {
+        bubble.innerText = "0/5";
+        bubble.classList.remove("show");
+      }
+
+      if (input) {
+        input.value = "";
+      }
 
       if (hint) {
-        hint.innerText = "小猫把通行证放好啦，继续输入专属暗号吧。";
+        hint.innerText = "喵～祝你今天有甜甜的好心情。";
       }
+
+      if (overlay) {
+        overlay.classList.remove("hidden");
+        overlay.style.opacity = "1";
+        overlay.style.pointerEvents = "auto";
+      }
+
+      setTimeout(function () {
+        if (input) input.focus();
+      }, 220);
     }
 
     let musicStarted = false;
@@ -1855,11 +1957,11 @@
       const playPromise = audio.play();
 
       if (playPromise !== undefined) {
-        playPromise.then(() => {
+        playPromise.then(function () {
           musicStarted = true;
           if (btn) btn.classList.add("playing");
           if (tip) tip.classList.add("hidden");
-        }).catch(() => {
+        }).catch(function () {
           if (btn) btn.classList.remove("hidden");
           if (tip) {
             tip.innerText = "点♪播放音乐";
@@ -1879,11 +1981,11 @@
       audio.volume = 0.55;
 
       if (audio.paused) {
-        audio.play().then(() => {
+        audio.play().then(function () {
           musicStarted = true;
           if (btn) btn.classList.add("playing");
           if (tip) tip.classList.add("hidden");
-        }).catch(() => {
+        }).catch(function () {
           if (tip) {
             tip.innerText = "微信限制自动播放，请再点一次♪";
             tip.classList.remove("hidden");
@@ -1895,7 +1997,7 @@
         if (tip) {
           tip.innerText = "音乐已暂停";
           tip.classList.remove("hidden");
-          setTimeout(() => {
+          setTimeout(function () {
             tip.classList.add("hidden");
           }, 1600);
         }
@@ -1908,14 +2010,17 @@
       bindAuthCatTap();
 
       if (hasRememberedThisDevice()) {
-        setTimeout(() => {
+        setTimeout(function () {
           openHappyPageAfterAuth(true);
         }, 260);
         return;
       }
 
       if (input) {
-        setTimeout(() => input.focus(), 450);
+        setTimeout(function () {
+          input.focus();
+        }, 450);
+
         input.addEventListener("keydown", function (event) {
           if (event.key === "Enter") {
             checkAuthPassword();
