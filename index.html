@@ -1080,6 +1080,52 @@
       75% { transform: translateX(-4px); }
     }
 
+  
+    .music-control {
+      position: fixed;
+      right: 14px;
+      bottom: 14px;
+      z-index: 120;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.72);
+      background: rgba(255, 255, 255, 0.76);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 10px 26px rgba(216, 79, 122, 0.20);
+      color: #d84f7a;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      margin: 0;
+    }
+
+    .music-control.playing {
+      animation: musicSpin 3.6s linear infinite;
+      background: rgba(255, 235, 245, 0.84);
+    }
+
+    @keyframes musicSpin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .music-tip {
+      position: fixed;
+      right: 70px;
+      bottom: 20px;
+      z-index: 119;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      color: #b93663;
+      background: rgba(255, 255, 255, 0.76);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 8px 22px rgba(216, 79, 122, 0.14);
+    }
+
   </style>
 </head>
 
@@ -1100,7 +1146,7 @@
         小猫守门员说：请输入专属暗号再进去。
       </p>
 
-      <input class="auth-input" id="authInput" type="password" placeholder="请输入专属暗号" autocomplete="off">
+      <input class="auth-input" id="authInput" type="text" placeholder="请输入专属暗号" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" inputmode="text" lang="zh-CN">
       <button class="auth-btn" type="button" onclick="checkAuthPassword()">让小猫开门</button>
 
       <div class="auth-hint" id="authHint">喵～祝你今天有甜甜的好心情。</div>
@@ -1383,6 +1429,11 @@
 
   <button class="test-show-btn hidden" id="testShowBtn" onclick="showTestPanel()">显示测试控件</button>
 
+
+  <audio id="bgMusic" src="舒适.mp3" preload="auto" loop></audio>
+  <div class="music-tip hidden" id="musicTip">点♪播放音乐</div>
+  <button class="music-control hidden" id="musicBtn" type="button" onclick="toggleMusic()" aria-label="播放或暂停背景音乐">♪</button>
+
   <script>
     /*
       测试控件：
@@ -1418,30 +1469,71 @@
 
 
     let authWrongCount = 0;
+    const AUTH_STORAGE_KEY = "swh_happy_page_auth_ok_v1";
     const authHints = [
       "输入手机尾号开启今天的开心一天。",
       "今天要开心的人是？"
     ];
 
-    function checkAuthPassword() {
-      const input = document.getElementById("authInput");
+    function normalizeAuthValue(value) {
+      return String(value || "").trim().replace(/\s+/g, "").toLowerCase();
+    }
+
+    function isValidAuthPassword(value) {
+      const v = normalizeAuthValue(value);
+      return v === "舒纹红" || v === "6593" || v === "shuwenhong" || v === "swh";
+    }
+
+    function rememberThisDevice() {
+      try {
+        localStorage.setItem(AUTH_STORAGE_KEY, "yes");
+      } catch (e) {}
+    }
+
+    function hasRememberedThisDevice() {
+      try {
+        return localStorage.getItem(AUTH_STORAGE_KEY) === "yes";
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function openHappyPageAfterAuth(autoOpen) {
       const overlay = document.getElementById("authOverlay");
       const hint = document.getElementById("authHint");
-      const card = document.getElementById("authCard");
+      const musicBtn = document.getElementById("musicBtn");
 
-      if (!input || !overlay) return;
+      if (hint && !autoOpen) {
+        hint.innerText = "小猫认证成功，今天的开心入口打开啦。";
+      }
 
-      const value = input.value.trim();
+      if (musicBtn) {
+        musicBtn.classList.remove("hidden");
+      }
 
-      if (value === "舒纹红" || value === "6593") {
-        if (hint) hint.innerText = "小猫认证成功，今天的开心入口打开啦。";
+      if (overlay) {
         overlay.style.opacity = "0";
         overlay.style.pointerEvents = "none";
-
         setTimeout(() => {
           overlay.classList.add("hidden");
         }, 420);
+      }
 
+      tryPlayMusic();
+    }
+
+    function checkAuthPassword() {
+      const input = document.getElementById("authInput");
+      const hint = document.getElementById("authHint");
+      const card = document.getElementById("authCard");
+
+      if (!input) return;
+
+      const value = input.value;
+
+      if (isValidAuthPassword(value)) {
+        rememberThisDevice();
+        openHappyPageAfterAuth(false);
         return;
       }
 
@@ -1465,8 +1557,77 @@
       input.focus();
     }
 
+    let musicStarted = false;
+
+    function tryPlayMusic() {
+      const audio = document.getElementById("bgMusic");
+      const btn = document.getElementById("musicBtn");
+      const tip = document.getElementById("musicTip");
+
+      if (!audio) return;
+
+      audio.volume = 0.55;
+
+      const playPromise = audio.play();
+
+      if (playPromise !== undefined) {
+        playPromise.then(() => {
+          musicStarted = true;
+          if (btn) btn.classList.add("playing");
+          if (tip) tip.classList.add("hidden");
+        }).catch(() => {
+          if (btn) btn.classList.remove("hidden");
+          if (tip) {
+            tip.innerText = "点♪播放音乐";
+            tip.classList.remove("hidden");
+          }
+        });
+      }
+    }
+
+    function toggleMusic() {
+      const audio = document.getElementById("bgMusic");
+      const btn = document.getElementById("musicBtn");
+      const tip = document.getElementById("musicTip");
+
+      if (!audio) return;
+
+      audio.volume = 0.55;
+
+      if (audio.paused) {
+        audio.play().then(() => {
+          musicStarted = true;
+          if (btn) btn.classList.add("playing");
+          if (tip) tip.classList.add("hidden");
+        }).catch(() => {
+          if (tip) {
+            tip.innerText = "微信限制自动播放，请再点一次♪";
+            tip.classList.remove("hidden");
+          }
+        });
+      } else {
+        audio.pause();
+        if (btn) btn.classList.remove("playing");
+        if (tip) {
+          tip.innerText = "音乐已暂停";
+          tip.classList.remove("hidden");
+          setTimeout(() => {
+            tip.classList.add("hidden");
+          }, 1600);
+        }
+      }
+    }
+
     window.addEventListener("load", function () {
       const input = document.getElementById("authInput");
+
+      if (hasRememberedThisDevice()) {
+        setTimeout(() => {
+          openHappyPageAfterAuth(true);
+        }, 260);
+        return;
+      }
+
       if (input) {
         setTimeout(() => input.focus(), 450);
         input.addEventListener("keydown", function (event) {
@@ -1474,6 +1635,8 @@
             checkAuthPassword();
           }
         });
+      }
+    });
       }
     });
 
@@ -1586,6 +1749,7 @@
       createHearts(7, 420);
       startGentleHearts();
       startParagraphTyping();
+      tryPlayMusic();
     }
 
     function showPage(num) {
