@@ -1289,6 +1289,126 @@
       touch-action: manipulation;
     }
 
+  
+    /* v20：手机端认证与小猫彩蛋稳定版 */
+    .auth-input,
+    .auth-btn,
+    .cat-face,
+    .cat-egg-btn {
+      touch-action: manipulation !important;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    .cat-face {
+      cursor: pointer !important;
+      position: relative !important;
+    }
+
+    .cat-face.cat-tapped {
+      animation: catTapPop 0.34s ease both !important;
+    }
+
+    @keyframes catTapPop {
+      0% { transform: scale(1) rotate(0deg); }
+      35% { transform: scale(1.18) rotate(-5deg); }
+      70% { transform: scale(1.08) rotate(4deg); }
+      100% { transform: scale(1) rotate(0deg); }
+    }
+
+    .cat-tap-bubble {
+      position: absolute;
+      right: -10px;
+      top: -10px;
+      min-width: 32px;
+      height: 32px;
+      padding: 0 8px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #ff7aa8, #ffb65f);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 18px rgba(255, 120, 160, 0.28);
+      border: 2px solid rgba(255,255,255,0.88);
+      opacity: 0;
+      transform: scale(0.7);
+      pointer-events: none;
+      transition: all 0.18s ease;
+    }
+
+    .cat-tap-bubble.show {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .cat-egg-pop {
+      position: fixed;
+      inset: 0;
+      z-index: 1000001;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 22px;
+      background: rgba(255, 245, 250, 0.76);
+      backdrop-filter: blur(8px);
+      touch-action: manipulation;
+    }
+
+    .cat-egg-card {
+      width: 100%;
+      max-width: 370px;
+      padding: 27px 20px 23px;
+      border-radius: 30px;
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: 0 18px 54px rgba(216, 79, 122, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.80);
+      text-align: center;
+      animation: catEggIn 0.35s ease both;
+    }
+
+    .cat-egg-icon {
+      font-size: 54px;
+      margin-bottom: 10px;
+      animation: catFloat 2.2s ease-in-out infinite;
+    }
+
+    .cat-egg-title {
+      font-family: "Kaiti SC", "STKaiti", "KaiTi", "Songti SC", serif;
+      font-size: 25px;
+      font-weight: 900;
+      color: #d84f7a;
+      margin: 8px 0 10px;
+      text-shadow: 0 3px 10px rgba(255, 130, 175, 0.22);
+    }
+
+    .cat-egg-text {
+      font-family: "Kaiti SC", "STKaiti", "KaiTi", "PingFang SC", serif;
+      font-size: 17px;
+      line-height: 1.85;
+      color: #744355;
+      margin: 10px 0 16px;
+    }
+
+    .cat-egg-btn {
+      width: 100%;
+      border: none;
+      border-radius: 999px;
+      padding: 13px 18px;
+      background: linear-gradient(135deg, #ff6f9f, #ffb35c);
+      color: white;
+      font-size: 16px;
+      font-weight: 800;
+      box-shadow: 0 9px 24px rgba(255, 120, 160, 0.28);
+    }
+
+    @keyframes catEggIn {
+      from { opacity: 0; transform: scale(0.92) translateY(10px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
   </style>
 </head>
 
@@ -1308,13 +1428,29 @@
       </p>
 
       <input class="auth-input" id="authInput" type="text" placeholder="请输入专属暗号" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" inputmode="text" lang="zh-CN">
-      <button class="auth-btn" id="authBtn" type="button" onclick="checkAuthPassword()">让小猫开门</button>
+      <button class="auth-btn" id="authBtn" type="button">让小猫开门</button>
 
       <div class="auth-hint" id="authHint">喵～祝你今天有甜甜的好心情。</div>
     </div>
   </div>
 
 
+
+<div class="cat-egg-pop hidden" id="catEggPop">
+    <div class="cat-egg-card">
+      <div class="cat-egg-icon">🐱🎫✨</div>
+      <div class="cat-egg-title">开心通行证特别版</div>
+      <div class="cat-egg-text">
+        恭喜你找到这个隐藏彩蛋。<br><br>
+        这张特别通行证只给认真点小猫的人。<br>
+        希望你今天被温柔对待，<br>
+        希望你吃到喜欢的东西，<br>
+        希望你不开心的时候也有人认真哄你。<br><br>
+        这一天的小快乐，偷偷盖章通过。
+      </div>
+      <button class="cat-egg-btn" type="button" id="catEggCloseBtn">收下特别版通行证</button>
+    </div>
+  </div>
 
   <div class="page" id="page1">
     <div class="card fade-in">
@@ -1632,8 +1768,9 @@
     let authWrongCount = 0;
     let authCatTapCount = 0;
     let authCatTapWindowStart = 0;
-    let authCatTapLastTs = 0;
     let catEggShownThisRound = false;
+    let authClickLock = false;
+    let catClickLock = false;
 
     const AUTH_STORAGE_KEY = "swh_happy_page_auth_ok_v1";
     const authHints = [
@@ -1691,7 +1828,9 @@
         }, 420);
       }
 
-      tryPlayMusic();
+      if (typeof tryPlayMusic === "function") {
+        tryPlayMusic();
+      }
     }
 
     function checkAuthPassword() {
@@ -1709,7 +1848,7 @@
         return;
       }
 
-      authWrongCount++;
+      authWrongCount += 1;
 
       if (card) {
         card.classList.remove("auth-shake");
@@ -1731,62 +1870,30 @@
       }, 80);
     }
 
+    function safeRunAuth(event) {
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+
+      if (authClickLock) return;
+      authClickLock = true;
+
+      checkAuthPassword();
+
+      setTimeout(function () {
+        authClickLock = false;
+      }, 260);
+    }
+
     function bindAuthButtonForMobile() {
       const btn = document.getElementById("authBtn");
       if (!btn || btn.dataset.bound === "yes") return;
 
       btn.dataset.bound = "yes";
 
-      const run = function (event) {
-        if (event) {
-          event.preventDefault();
-          event.stopPropagation();
-        }
-        checkAuthPassword();
-      };
-
-      if (window.PointerEvent) {
-        btn.addEventListener("pointerdown", run, { passive: false });
-      } else {
-        btn.addEventListener("touchstart", run, { passive: false });
-      }
-
-      btn.addEventListener("click", function (event) {
-        if (event) {
-          event.preventDefault();
-          event.stopPropagation();
-        }
-        checkAuthPassword();
-      }, { passive: false });
-    }
-
-    function bindAuthCatTap() {
-      const cat = document.getElementById("catFace");
-      if (!cat || cat.dataset.bound === "yes") return;
-
-      cat.dataset.bound = "yes";
-
-      const run = function (event) {
-        if (event) {
-          event.preventDefault();
-          event.stopPropagation();
-        }
-        tapAuthCat();
-      };
-
-      if (window.PointerEvent) {
-        cat.addEventListener("pointerdown", run, { passive: false });
-      } else {
-        cat.addEventListener("touchstart", run, { passive: false });
-      }
-
-      cat.addEventListener("click", function (event) {
-        if (event) {
-          event.preventDefault();
-          event.stopPropagation();
-        }
-        tapAuthCat();
-      }, { passive: false });
+      btn.addEventListener("touchend", safeRunAuth, { passive: false });
+      btn.addEventListener("click", safeRunAuth, { passive: false });
     }
 
     function showCatTapFeedback() {
@@ -1802,12 +1909,6 @@
       if (bubble) {
         bubble.innerText = authCatTapCount + "/5";
         bubble.classList.add("show");
-
-        setTimeout(function () {
-          if (authCatTapCount === 0 || catEggShownThisRound) {
-            bubble.classList.remove("show");
-          }
-        }, 900);
       }
     }
 
@@ -1815,19 +1916,14 @@
       if (catEggShownThisRound) {
         const hintDone = document.getElementById("authHint");
         if (hintDone) {
-          hintDone.innerText = "开心通行证这轮已经领取啦，重置后可以再次领取。";
+          hintDone.innerText = "开心通行证这轮已经领取啦，赶快开门查看吧！";
         }
         return;
       }
 
       const now = Date.now();
 
-      if (authCatTapLastTs && now - authCatTapLastTs < 120) {
-        return;
-      }
-      authCatTapLastTs = now;
-
-      if (!authCatTapWindowStart || now - authCatTapWindowStart > 4200) {
+      if (!authCatTapWindowStart || now - authCatTapWindowStart > 5000) {
         authCatTapWindowStart = now;
         authCatTapCount = 1;
       } else {
@@ -1837,16 +1933,47 @@
       showCatTapFeedback();
 
       const hint = document.getElementById("authHint");
-      if (hint && authCatTapCount < 5) {
-        hint.innerText = "小猫被摸了 " + authCatTapCount + " 下，再轻轻点几下好像会有小惊喜。";
-      }
 
-      if (authCatTapCount >= 5) {
+      if (authCatTapCount < 5) {
+        if (hint) {
+          hint.innerText = "小猫被摸了 " + authCatTapCount + " 下，再轻轻点几下好像会有小惊喜。";
+        }
+      } else {
         authCatTapCount = 0;
         authCatTapWindowStart = 0;
         catEggShownThisRound = true;
+
+        if (hint) {
+          hint.innerText = "开心通行证这轮已经领取啦，赶快开门查看吧！";
+        }
+
         showCatEgg();
       }
+    }
+
+    function safeRunCat(event) {
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+
+      if (catClickLock) return;
+      catClickLock = true;
+
+      tapAuthCat();
+
+      setTimeout(function () {
+        catClickLock = false;
+      }, 180);
+    }
+
+    function bindAuthCatTap() {
+      const cat = document.getElementById("catFace");
+      if (!cat || cat.dataset.bound === "yes") return;
+
+      cat.dataset.bound = "yes";
+      cat.addEventListener("touchend", safeRunCat, { passive: false });
+      cat.addEventListener("click", safeRunCat, { passive: false });
     }
 
     function showCatEgg() {
@@ -1865,7 +1992,6 @@
 
     function closeCatEgg() {
       const pop = document.getElementById("catEggPop");
-      const hint = document.getElementById("authHint");
       const bubble = document.getElementById("catTapBubble");
 
       if (pop) {
@@ -1875,10 +2001,24 @@
       if (bubble) {
         bubble.classList.remove("show");
       }
+    }
 
-      if (hint) {
-        hint.innerText = "开心通行证已经收好啦，这个小惊喜这轮只会出现一次哦。";
-      }
+    function bindCatEggCloseButton() {
+      const btn = document.getElementById("catEggCloseBtn");
+      if (!btn || btn.dataset.bound === "yes") return;
+
+      btn.dataset.bound = "yes";
+
+      const run = function (event) {
+        if (event) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+        closeCatEgg();
+      };
+
+      btn.addEventListener("touchend", run, { passive: false });
+      btn.addEventListener("click", run, { passive: false });
     }
 
     function resetAuthStateToPasswordPage() {
@@ -1889,8 +2029,9 @@
       authWrongCount = 0;
       authCatTapCount = 0;
       authCatTapWindowStart = 0;
-      authCatTapLastTs = 0;
       catEggShownThisRound = false;
+      authClickLock = false;
+      catClickLock = false;
 
       const overlay = document.getElementById("authOverlay");
       const input = document.getElementById("authInput");
@@ -2006,8 +2147,10 @@
 
     window.addEventListener("load", function () {
       const input = document.getElementById("authInput");
+
       bindAuthButtonForMobile();
       bindAuthCatTap();
+      bindCatEggCloseButton();
 
       if (hasRememberedThisDevice()) {
         setTimeout(function () {
