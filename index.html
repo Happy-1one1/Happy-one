@@ -1441,6 +1441,47 @@
       box-shadow: 0 0 0 5px rgba(255, 120, 160, 0.16);
     }
 
+  
+    /* v22：长按重置进度条反馈 */
+    .long-reset-wrap {
+      margin: 12px auto 4px;
+      width: 100%;
+      max-width: 260px;
+      padding: 10px 12px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.66);
+      border: 1px solid rgba(216, 79, 122, 0.16);
+      box-shadow: 0 8px 20px rgba(216, 79, 122, 0.10);
+    }
+
+    .long-reset-text {
+      font-size: 13px;
+      color: #c45163;
+      margin-bottom: 7px;
+      font-weight: 800;
+    }
+
+    .long-reset-bar {
+      width: 100%;
+      height: 9px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(216, 79, 122, 0.13);
+    }
+
+    .long-reset-fill {
+      width: 0%;
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #ff6f9f, #ffb35c);
+      transition: width 0.08s linear;
+    }
+
+    #replayBtn.long-pressing {
+      transform: scale(0.96);
+      box-shadow: 0 0 0 6px rgba(255, 120, 160, 0.16);
+    }
+
   </style>
 </head>
 
@@ -1695,6 +1736,12 @@
       </div>
 
       <button class="soft" id="replayBtn" type="button">再看一遍</button>
+      <div class="long-reset-wrap hidden" id="longResetWrap">
+        <div class="long-reset-text" id="longResetText">继续按住，即将重置</div>
+        <div class="long-reset-bar">
+          <div class="long-reset-fill" id="longResetFill"></div>
+        </div>
+      </div>
       <p class="tiny">轻点从头再看一遍，长按可直接重置并回到认证页。</p>
     </div>
   </div>
@@ -2795,8 +2842,59 @@
 
 
     let replayPressTimer = null;
+    let replayProgressTimer = null;
     let replayLongPressed = false;
     let replayClickLock = false;
+    const REPLAY_LONG_PRESS_MS = 1200;
+
+    function resetReplayProgress() {
+      const wrap = document.getElementById("longResetWrap");
+      const fill = document.getElementById("longResetFill");
+      const text = document.getElementById("longResetText");
+      const btn = document.getElementById("replayBtn");
+
+      clearTimeout(replayPressTimer);
+      clearInterval(replayProgressTimer);
+
+      if (fill) fill.style.width = "0%";
+      if (text) text.innerText = "继续按住，即将重置";
+      if (wrap) wrap.classList.add("hidden");
+      if (btn) btn.classList.remove("long-pressing");
+    }
+
+    function startReplayProgress() {
+      const wrap = document.getElementById("longResetWrap");
+      const fill = document.getElementById("longResetFill");
+      const text = document.getElementById("longResetText");
+
+      if (wrap) wrap.classList.remove("hidden");
+      if (fill) fill.style.width = "0%";
+      if (text) text.innerText = "继续按住，即将重置";
+
+      const startTime = Date.now();
+
+      clearInterval(replayProgressTimer);
+      replayProgressTimer = setInterval(function () {
+        const elapsed = Date.now() - startTime;
+        const percent = Math.min(100, Math.round((elapsed / REPLAY_LONG_PRESS_MS) * 100));
+
+        if (fill) fill.style.width = percent + "%";
+
+        if (text) {
+          if (percent < 45) {
+            text.innerText = "继续按住，即将重置";
+          } else if (percent < 85) {
+            text.innerText = "快要完成重置啦";
+          } else {
+            text.innerText = "马上回到认证页";
+          }
+        }
+
+        if (percent >= 100) {
+          clearInterval(replayProgressTimer);
+        }
+      }, 40);
+    }
 
     function bindReplayButton() {
       const btn = document.getElementById("replayBtn");
@@ -2812,13 +2910,22 @@
 
         replayLongPressed = false;
         btn.classList.add("long-pressing");
+        startReplayProgress();
 
         clearTimeout(replayPressTimer);
         replayPressTimer = setTimeout(function () {
           replayLongPressed = true;
-          btn.classList.remove("long-pressing");
-          restart();
-        }, 850);
+          const fill = document.getElementById("longResetFill");
+          const text = document.getElementById("longResetText");
+
+          if (fill) fill.style.width = "100%";
+          if (text) text.innerText = "重置完成，正在回到认证页";
+
+          setTimeout(function () {
+            resetReplayProgress();
+            restart();
+          }, 180);
+        }, REPLAY_LONG_PRESS_MS);
       };
 
       const end = function (event) {
@@ -2827,10 +2934,13 @@
           event.stopPropagation();
         }
 
-        clearTimeout(replayPressTimer);
-        btn.classList.remove("long-pressing");
+        if (replayLongPressed) {
+          return;
+        }
 
-        if (!replayLongPressed && !replayClickLock) {
+        resetReplayProgress();
+
+        if (!replayClickLock) {
           replayClickLock = true;
           replayFromStart();
 
@@ -2840,14 +2950,18 @@
         }
       };
 
+      const cancel = function () {
+        if (!replayLongPressed) {
+          resetReplayProgress();
+        }
+      };
+
       btn.addEventListener("touchstart", start, { passive: false });
       btn.addEventListener("touchend", end, { passive: false });
+      btn.addEventListener("touchcancel", cancel, { passive: false });
       btn.addEventListener("mousedown", start);
       btn.addEventListener("mouseup", end);
-      btn.addEventListener("mouseleave", function () {
-        clearTimeout(replayPressTimer);
-        btn.classList.remove("long-pressing");
-      });
+      btn.addEventListener("mouseleave", cancel);
       btn.addEventListener("click", function (event) {
         if (event) {
           event.preventDefault();
