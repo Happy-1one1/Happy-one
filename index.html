@@ -686,54 +686,6 @@
     }
 
   
-    .test-panel {
-      position: fixed;
-      left: 10px;
-      right: 10px;
-      bottom: 10px;
-      z-index: 99;
-      padding: 9px;
-      border-radius: 18px;
-      background: rgba(44, 34, 42, 0.78);
-      backdrop-filter: blur(8px);
-      color: white;
-      display: flex;
-      gap: 6px;
-      justify-content: center;
-      align-items: center;
-      flex-wrap: wrap;
-      box-shadow: 0 8px 26px rgba(0,0,0,0.16);
-    }
-
-    .test-panel button {
-      margin: 0;
-      padding: 8px 11px;
-      font-size: 12px;
-      box-shadow: none;
-      background: rgba(255,255,255,0.20);
-      color: white;
-      border: 1px solid rgba(255,255,255,0.18);
-    }
-
-    .test-page-label {
-      font-size: 12px;
-      padding: 0 4px;
-      opacity: 0.9;
-    }
-
-    .test-show-btn {
-      position: fixed;
-      right: 12px;
-      bottom: 12px;
-      z-index: 100;
-      margin: 0;
-      padding: 10px 12px;
-      border-radius: 999px;
-      font-size: 12px;
-      background: rgba(44, 34, 42, 0.76);
-      color: white;
-      box-shadow: 0 8px 22px rgba(0,0,0,0.18);
-    }
 
     .single-food-card {
       padding: 20px 18px;
@@ -1797,16 +1749,6 @@
 
 
 
-  <div class="test-panel" id="testPanel">
-    <button onclick="prevPage()">上一步</button>
-    <button onclick="nextPage()">下一步</button>
-    <button onclick="revealCurrent()">展开本页</button>
-    <span class="test-page-label" id="pageLabel">测试：1 / 15</span>
-    <button onclick="restart()">重置</button>
-    <button onclick="hideTestPanel()">隐藏测试控件</button>
-  </div>
-
-  <button class="test-show-btn hidden" id="testShowBtn" onclick="showTestPanel()">显示测试控件</button>
 
 
   <audio id="bgMusic" src="舒适.mp3" preload="auto" loop></audio>
@@ -1819,7 +1761,7 @@
       true  = 显示底部测试控件，方便测试上一步、下一步、展开本页；
       false = 隐藏测试控件，适合正式发送前使用。
     */
-    const TEST_MODE = true;
+    const TEST_MODE = false;
 
     const paragraphs = [
       `其实我做这个网页的时候，\n想的并不是它要有多厉害。`,
@@ -2283,13 +2225,6 @@
     let happyEggCooldownUntil = 0;
 
     window.addEventListener("load", function () {
-      if (!TEST_MODE) {
-        const panel = document.getElementById("testPanel");
-        const btn = document.getElementById("testShowBtn");
-        if (panel) panel.classList.add("hidden");
-        if (btn) btn.classList.add("hidden");
-      }
-
       bindFastTapButtons();
       updatePageLabel();
     });
@@ -2507,13 +2442,13 @@
       const panel = document.getElementById("testPanel");
       const btn = document.getElementById("testShowBtn");
       if (panel) panel.classList.add("hidden");
-      if (btn && TEST_MODE) btn.classList.remove("hidden");
+      if (btn) btn.classList.add("hidden");
     }
 
     function showTestPanel() {
       const panel = document.getElementById("testPanel");
       const btn = document.getElementById("testShowBtn");
-      if (panel && TEST_MODE) panel.classList.remove("hidden");
+      if (panel) panel.classList.remove("hidden");
       if (btn) btn.classList.add("hidden");
     }
 
