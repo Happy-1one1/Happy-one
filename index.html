@@ -1203,6 +1203,13 @@
       }
     }
 
+  
+    .auth-btn {
+      touch-action: manipulation;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
   </style>
 </head>
 
@@ -1224,7 +1231,7 @@
       </p>
 
       <input class="auth-input" id="authInput" type="text" placeholder="请输入专属暗号" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" inputmode="text" lang="zh-CN">
-      <button class="auth-btn" type="button" onclick="checkAuthPassword()">让小猫开门</button>
+      <button class="auth-btn" id="authBtn" type="button" onclick="checkAuthPassword()">让小猫开门</button>
 
       <div class="auth-hint" id="authHint">喵～祝你今天有甜甜的好心情。</div>
     </div>
@@ -1558,13 +1565,15 @@
       return String(value || "")
         .trim()
         .replace(/\s+/g, "")
-        .toLocaleLowerCase();
+        .replace(/[０-９]/g, function (d) {
+          return String.fromCharCode(d.charCodeAt(0) - 65248);
+        })
+        .toLowerCase();
     }
 
     function isValidAuthPassword(value) {
       const v = normalizeAuthValue(value);
-      const allowed = ["舒纹红", "6593", "shuwenhong", "swh"];
-      return allowed.includes(v);
+      return v === "舒纹红" || v === "6593" || v === "shuwenhong" || v === "swh";
     }
 
     function rememberThisDevice() {
@@ -1603,6 +1612,82 @@
       }
 
       tryPlayMusic();
+    }
+
+
+    function bindAuthButtonForMobile() {
+      const btn = document.getElementById("authBtn");
+      if (!btn || btn.dataset.bound === "yes") return;
+
+      btn.dataset.bound = "yes";
+
+      const run = function (event) {
+        if (event) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+        checkAuthPassword();
+      };
+
+      if (window.PointerEvent) {
+        btn.addEventListener("pointerdown", run, { passive: false });
+      } else {
+        btn.addEventListener("touchstart", run, { passive: false });
+      }
+    }
+
+    function resetAuthStateToPasswordPage() {
+      try {
+        localStorage.removeItem(AUTH_STORAGE_KEY);
+      } catch (e) {}
+
+      authWrongCount = 0;
+      authCatTapCount = 0;
+      authCatTapWindowStart = 0;
+
+      const overlay = document.getElementById("authOverlay");
+      const input = document.getElementById("authInput");
+      const hint = document.getElementById("authHint");
+      const pop = document.getElementById("catEggPop");
+      const audio = document.getElementById("bgMusic");
+      const btn = document.getElementById("musicBtn");
+      const tip = document.getElementById("musicTip");
+
+      if (audio) {
+        audio.pause();
+        audio.currentTime = 0;
+      }
+
+      if (btn) {
+        btn.classList.remove("playing");
+        btn.classList.add("hidden");
+      }
+
+      if (tip) {
+        tip.classList.add("hidden");
+      }
+
+      if (pop) {
+        pop.classList.add("hidden");
+      }
+
+      if (input) {
+        input.value = "";
+      }
+
+      if (hint) {
+        hint.innerText = "喵～祝你今天有甜甜的好心情。";
+      }
+
+      if (overlay) {
+        overlay.classList.remove("hidden");
+        overlay.style.opacity = "1";
+        overlay.style.pointerEvents = "auto";
+      }
+
+      setTimeout(() => {
+        if (input) input.focus();
+      }, 220);
     }
 
     function checkAuthPassword() {
@@ -1745,6 +1830,7 @@
 
     window.addEventListener("load", function () {
       const input = document.getElementById("authInput");
+      bindAuthButtonForMobile();
 
       if (hasRememberedThisDevice()) {
         setTimeout(() => {
@@ -2328,6 +2414,7 @@
       document.querySelectorAll(".star").forEach(star => star.classList.remove("active-star"));
 
       showPage(1);
+      resetAuthStateToPasswordPage();
     }
 
     function createHearts(count = 5, interval = 520) {
